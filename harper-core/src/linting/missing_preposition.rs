@@ -1,11 +1,13 @@
 use harper_brill::UPOS;
 
+use crate::expr::All;
 use crate::expr::AnchorStart;
 use crate::expr::Expr;
 use crate::expr::OwnedExprExt;
 use crate::expr::SequenceExpr;
 use crate::patterns::AnyPattern;
 use crate::patterns::UPOSSet;
+use crate::patterns::WordSet;
 use crate::{Token, TokenStringExt};
 
 use super::{ExprLinter, Lint, LintKind};
@@ -26,7 +28,15 @@ impl Default for MissingPreposition {
         )
         .then(UPOSSet::new(&[UPOS::NOUN, UPOS::PRON, UPOS::PROPN]))
         .t_ws()
-        .then(UPOSSet::new(&[UPOS::AUX]))
+        // Only a form of `be` links to an adjective that may be missing its preposition,
+        // as in "famous (for) its beaches". Other auxiliaries, such as the `has` in
+        // "it has new formats", are followed by an ordinary noun phrase.
+        .then(All::new(vec![
+            Box::new(UPOSSet::new(&[UPOS::AUX])) as Box<dyn Expr>,
+            Box::new(WordSet::new([
+                "am", "is", "are", "was", "were", "be", "been", "being",
+            ])),
+        ]))
         .t_ws()
         .then(UPOSSet::new(&[UPOS::ADJ]))
         .t_ws()
@@ -144,6 +154,28 @@ mod tests {
         assert_no_lints(
             "Each agent has specific tools and tasks orchestrated through a crew workflow.",
             MissingPreposition::default(),
+        );
+    }
+
+    #[test]
+    fn allows_has_adj_noun_issue_4581() {
+        assert_no_lints(
+            "The A18 Pro user space is very different from the M1/M2; it has new descriptor formats, a new",
+            MissingPreposition::default(),
+        );
+    }
+
+    #[test]
+    fn allows_had_adj_noun() {
+        assert_no_lints("She had red shoes.", MissingPreposition::default());
+    }
+
+    #[test]
+    fn still_flags_be_adj_noun() {
+        assert_lint_count(
+            "The town was famous its cheese.",
+            MissingPreposition::default(),
+            1,
         );
     }
 }
