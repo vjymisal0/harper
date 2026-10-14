@@ -1,4 +1,5 @@
-use crate::linting::LintGroup;
+use crate::expr::SequenceExpr;
+use crate::linting::{LintGroup, LintKind};
 
 use super::MapPhraseLinter;
 
@@ -77,7 +78,6 @@ pub fn lint_group() -> LintGroup {
         "Somewhere"       => (&["some where"][..], "somewhere"),
         "Straightforward" => (&["straight forward"][..], "straightforward"),
         "Tenfold"         => (&["ten fold"][..], "tenfold"),
-        "There"           => (&["the re"][..], "there"),
         "Therefore"       => (&["there fore"][..], "therefore"),
         "Thereupon"       => (&["there upon"][..], "thereupon"),
         "Tradeoff"        => (&["trade off"][..], "tradeoff"),
@@ -90,6 +90,19 @@ pub fn lint_group() -> LintGroup {
         "Worldwide"       => (&["world wide"][..], "worldwide"),
         "Worthwhile"      => (&["worth while", "worth-while"][..], "worthwhile"),
     });
+
+    // Unlike the mappings above, `re` must be lowercase here, so abbreviations such as
+    // "the RE process" (reverse engineering) are left alone.
+    group.add(
+        "There",
+        Box::new(MapPhraseLinter::new(
+            Box::new(SequenceExpr::aco("the").t_ws().then_exact_word("re")),
+            ["there"],
+            "Did you mean the closed compound `there`?",
+            "Looks for incorrect spacing inside the closed compound `there`.",
+            Some(LintKind::Miscellaneous),
+        )),
+    );
 
     group.set_all_rules_to(Some(true));
 
@@ -416,6 +429,23 @@ mod tests {
             "the rust compiler is fast, but often times it has to perform a lot of unnecessary checks because crates contain more stuff than needed",
             lint_group(),
             "the rust compiler is fast, but oftentimes it has to perform a lot of unnecessary checks because crates contain more stuff than needed",
+        );
+    }
+
+    #[test]
+    fn the_re_mid_sentence() {
+        assert_suggestion_result(
+            "Is the re a problem with the build?",
+            lint_group(),
+            "Is there a problem with the build?",
+        );
+    }
+
+    #[test]
+    fn allows_the_re_abbreviation_issue_4580() {
+        assert_no_lints(
+            "There are many other issues that add friction to the RE process 2.",
+            lint_group(),
         );
     }
 }
