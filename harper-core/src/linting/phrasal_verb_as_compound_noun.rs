@@ -220,6 +220,26 @@ impl PhrasalVerbAsCompoundNoun {
                         ][..],
                     ),
                     ("callback", &["function", "handlers"][..]),
+                    (
+                        "followup",
+                        &[
+                            "appointment",
+                            "appointments",
+                            "email",
+                            "emails",
+                            "issue",
+                            "issues",
+                            "meeting",
+                            "meetings",
+                            "problem",
+                            "problems",
+                            "question",
+                            "questions",
+                            "study",
+                            "studies",
+                            "work",
+                        ][..],
+                    ),
                     ("layout", &["estimation"][..]),
                     ("markup", &["language", "languages"][..]),
                     ("mouseover", &["hints"][..]),
@@ -806,6 +826,31 @@ mod tests {
         assert_no_lints(
             "Unfortunately, Meltdown ended up being problematic.",
             test_linter(),
+        );
+    }
+
+    #[test]
+    fn dont_flag_followup_problems_issue_4585() {
+        assert_no_lints(
+            "As a result, new connections and collaborations are formed, followup problems are shared, and other mathematicians are attracted to the field.",
+            test_linter(),
+        );
+    }
+
+    #[test]
+    fn dont_flag_followup_questions() {
+        assert_no_lints(
+            "We discussed followup questions after the talk.",
+            test_linter(),
+        );
+    }
+
+    #[test]
+    fn still_correct_followup_used_as_a_verb() {
+        assert_suggestion_result(
+            "We need to followup with the team tomorrow.",
+            test_linter(),
+            "We need to follow up with the team tomorrow.",
         );
     }
 }
