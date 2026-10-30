@@ -1,0 +1,17 @@
+expr main [<([a, one] weak [of, ago]), weak>, <(a weak or two), weak>]
+
+let message "Did you mean the noun `week`?"
+let description "Looks for mixing up the adjective `weak` with the noun `week`."
+let kind "WordChoice"
+let becomes "week"
+
+test "IME, at least a weak of full-time dedication is needed, with a suitable editor and config, to start grasping this." "IME, at least a week of full-time dedication is needed, with a suitable editor and config, to start grasping this."
+test "I tried this a weak ago and it worked." "I tried this a week ago and it worked."
+test "That was one weak ago." "That was one week ago."
+test "I'll get back to you in a weak or two." "I'll get back to you in a week or two."
+test "A Weak of testing is enough." "A Week of testing is enough."
+
+allows "It was a weak or strong signal depending on the antenna."
+allows "This is a weak argument."
+allows "I tried this a week ago and it worked."
+allows "He is weak of will."

@@ -3517,6 +3517,13 @@
 						},
 						{
 							"Bool": {
+								"name": "WeakWeek",
+								"state": true,
+								"label": "Weak Week"
+							}
+						},
+						{
+							"Bool": {
 								"name": "WidelyAccepted",
 								"state": true,
 								"label": "Widely Accepted"
